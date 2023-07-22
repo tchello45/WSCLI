@@ -14,12 +14,26 @@ def disconnect():
 def status(data):
     print(data)
 
+@sio.on('token')
+def token(data):
+    token_ = data
+    da = open('temp/token.txt', 'w')
+    da.write(data)
+    da.close()
+
 def login():
-    sio.emit('login', {'username': 'test', 'password': 'test', 'API_server': 'sys_default_enc', 'login_password': 123})
+    sio.emit('login', {'username': 'test', 'password': 'test', 'API_server': 'sys', 'login_password': "123"})
 
 def register():
     sio.emit('register', {'username': 'test', 'password': 'test', 'API_server': 'sys', 'register_password': "123"})
 
+def token_check():
+    da = open('token.txt', 'r')
+    token = da.read()
+    da.close()
+    sio.emit('token_check', {'token': token})
+    sio.emit('token_check', {'token': "token"})
+
 sio.connect('http://localhost:5000')
-register()
+token_check()
 sio.wait()

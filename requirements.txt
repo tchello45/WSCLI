@@ -1,0 +1,4 @@
+socketio
+websocket-client
+PySimpleGUI
+
