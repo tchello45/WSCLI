@@ -169,7 +169,11 @@ def messages(data):
 def token(data):
     global token_
     token_ = data
+    da = open('temp/token.txt', 'w')
+    da.write(token_)
+    da.close()
     print(token_)
+    chat()
 try:
     sio.connect(server_link)
 except:
@@ -182,6 +186,6 @@ else:
     da = open('temp/token.txt', 'r')
     token_ = da.read()
     da.close()
+    web_sock_check_token(token_)
 web_sock_error_dict()
-web_sock_check_token(token_)
 exit()

@@ -26,13 +26,13 @@ def status(data):
             }
             with open('temp/config.json', 'w') as f:
                 json.dump(dict_, f)
-            sg.popup_ok('Installation is complete!')
+            print("config.json created - installation complete")
 
     else:
         if data["code"] == 402 and data["flag"] == "check":
-            sg.popup_error('Login password is incorrect')
+            print("login password is incorrect")
         if data["code"] == 403 and data["flag"] == "check":
-            sg.popup_error('Register password is incorrect')
+            print("register password is incorrect")
 
 @sio.on('enc')
 def enc(data):
