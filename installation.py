@@ -4,6 +4,8 @@ import json
 import shutil
 import socketio
 sio = socketio.Client()
+if not os.path.exists('temp'):
+    os.makedirs('temp')
 window = None
 enc = None
 server_link = None
@@ -71,5 +73,6 @@ def start():
                     sio.emit('login_register_password_check', {'login_password': login_password, 'register_password': register_password, 'API_server': api_server_name})
                 except:
                     sg.popup_error('Server is offline')
+                    continue
                 break
 start()
