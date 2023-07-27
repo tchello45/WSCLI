@@ -17,20 +17,14 @@ def save_token(path:str, token):
     zip_ = ZipFile(path, 'a')
     zip_.writestr('token.txt', token)
     zip_.close()
-def save_log(path:str, log):
-    zip_ = ZipFile(path, 'a')
-    if "log.txt" in zip_.namelist():
-        zip_.writestr('log.txt', zip_.read('log.txt').decode() + "\n" + log)
-    else:
-        zip_.writestr('log.txt', log)
-        zip_.close()
+def save_log(path:str, log:str):
+    da = open("log.txt", "a")
+    da.write(log)
+    da.close()
 def save_long_log(path:str, long_log):
-    zip_ = ZipFile(path, 'a')
-    if "long_log.txt" in zip_.namelist():
-        zip_.writestr('long_log.txt', zip_.read('long_log.txt').decode() + "\n" + long_log)
-    else:
-        zip_.writestr('long_log.txt', long_log)
-        zip_.close()
+    da = open("long_log.txt", "a")
+    da.write(long_log)
+    da.close()
 def save_error_dict(path:str, error_dict):
     zip_ = ZipFile(path, 'a')
     zip_.writestr('error_dict.json', error_dict)
@@ -60,12 +54,6 @@ def read_error_dict(path:str):
     error_dict = zip_.read('error_dict.json')
     zip_.close()
     return error_dict
-
-save_config("conf.usscs", "CONFIG")
-save_token("conf.usscs", "TOKEN")
-save_log("conf.usscs", "LOG")
-save_log("conf.usscs", "LOG2")
-
-print(read_config("conf.usscs"))
-print(read_token("conf.usscs"))
-print(read_log("conf.usscs").decode())
+if __name__ == "__main__":
+    #change token to invalid token
+    save_token("conf.wscli", "_token_INVALID_TOKEN_")

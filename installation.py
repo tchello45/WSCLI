@@ -1,7 +1,7 @@
 import PySimpleGUI as sg
 import os
 import json
-import shutil
+import zipper
 import socketio
 sio = socketio.Client()
 if not os.path.exists('temp'):
@@ -24,10 +24,10 @@ def status(data):
                 "register_password": register_password,
                 "enc": enc
             }
-            with open('temp/config.json', 'w') as f:
-                json.dump(dict_, f)
-            print("config.json created - installation complete")
-
+            json_ = json.dumps(dict_)
+            zipper.save_config('conf.wscli', json_)
+            print("installation complete")
+            exit()
     else:
         if data["code"] == 402 and data["flag"] == "check":
             print("login password is incorrect")

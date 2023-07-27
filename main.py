@@ -5,20 +5,20 @@ import socketio
 import rsa
 import threading
 import sys
+import zipper
 from zipfile import ZipFile
 sio = socketio.Client()
 window = None
 token_ = None
-if not os.path.exists('temp/config.json'):
+if not os.path.exists('conf.wscli'):
     sg.popup_error('Please run installation.py first')
     exit()
-with open('temp/config.json', 'r') as f:
-    data = json.load(f)
-    server_link = data["server_link"]
-    api_server_name = data["api_server_name"]
-    login_password = data["login_password"]
-    register_password = data["register_password"]
-    enc = data["enc"]
+data = json.loads(zipper.read_config('conf.wscli').decode())
+server_link = data["server_link"]
+api_server_name = data["api_server_name"]
+login_password = data["login_password"]
+register_password = data["register_password"]
+enc = data["enc"]
 
 def web_sock_login(username:str, password:str):
     sio.emit('login', {'username': username, 'password': password, 'API_server': api_server_name, 'login_password': login_password})
@@ -142,12 +142,8 @@ def chat():
 
 @sio.on('status')
 def status(data):
-    da = open('temp/long_log.txt', 'a')
-    da.write(str(data) + '\n')
-    da.close()
-    da = open('temp/log.txt', 'a')
-    da.write(str(data["err_id"]) + '\n')
-    da.close()
+    zipper.save_long_log('conf.wscli', str(data))
+    zipper.save_log('conf.wscli', str(data["err_id"]))
     if data["code"] == 401 and data["flag"] == "check":
         register_login()
     elif data["code"] == 210 and data["flag"] == "check":
@@ -156,9 +152,7 @@ def status(data):
         window['messages'].update('Target not found')
 @sio.on('error_dict')
 def error_dict(data):
-    da = open('temp/error_dict.json', 'w')
-    da.write(data)
-    da.close()
+    zipper.save_error_dict('conf.wscli', data)
 @sio.on('messages')
 def messages(data): 
     new_data = ''
@@ -169,23 +163,19 @@ def messages(data):
 def token(data):
     global token_
     token_ = data
-    da = open('temp/token.txt', 'w')
-    da.write(token_)
-    da.close()
+    zipper.save_token('conf.wscli', token_)
     print(token_)
-    chat()
 try:
     sio.connect(server_link)
-except:
+    if os.path.exists('conf.wscli'):
+        web_sock_error_dict()
+except: 
     sg.popup_error('Server is not available')
     exit()
 
-if not os.path.exists('temp/token.txt'):
-    register_login()
-else:
-    da = open('temp/token.txt', 'r')
-    token_ = da.read()
-    da.close()
+try:
+    token_ = zipper.read_token('conf.wscli').decode()
     web_sock_check_token(token_)
-web_sock_error_dict()
+except Exception as e:
+    register_login()
 exit()

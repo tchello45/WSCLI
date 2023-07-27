@@ -1,2 +1,6 @@
 /temp
 *.wscli
+/extract
+/__pycache__
+log.txt
+long_log.txt
