@@ -1,14 +1,4 @@
 from zipfile import ZipFile
-import os
-"""
-tree:
-    <path>
-    ├───config.json
-    ├───token.txt
-    ├───log.txt
-    ├───long_log.txt
-    ├───error_dict.json
-"""
 def save_config(path:str, config):
     zip_ = ZipFile(path, 'a')
     zip_.writestr('config.json', config)
@@ -19,11 +9,11 @@ def save_token(path:str, token):
     zip_.close()
 def save_log(path:str, log:str):
     da = open("log.txt", "a")
-    da.write(log)
+    da.write(log + "\n")
     da.close()
 def save_long_log(path:str, long_log):
     da = open("long_log.txt", "a")
-    da.write(long_log)
+    da.write(long_log+ "\n")
     da.close()
 def save_error_dict(path:str, error_dict):
     zip_ = ZipFile(path, 'a')

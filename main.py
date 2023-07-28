@@ -4,12 +4,13 @@ import json
 import socketio
 import rsa
 import threading
-import sys
 import zipper
-from zipfile import ZipFile
 sio = socketio.Client()
 window = None
 token_ = None
+target_ = None
+__version__ = "1.0.0 beta"
+__author__ = "Tilman Kurmayer"
 if not os.path.exists('conf.wscli'):
     sg.popup_error('Please run installation.py first')
     exit()
@@ -40,6 +41,10 @@ def web_sock_error_dict():
     sio.emit('get_error_dict')
 def web_sock_check_token(token):
     sio.emit('token_check', {'token': token})
+def web_sock_messages_background(target:str):
+
+    print("start backgorund"+ target)
+    sio.emit('get_messages_background', {'target': target, 'token': token_})
 
 def register_login():
     layout = [
@@ -112,11 +117,12 @@ def register():
 
 def chat():
     global window
+    global target_
     layout = [
-        [sg.Text('Chat', font=('Helvetica', 20))],
+        [sg.Text('Chat', font=('Helvetica', 20), key="title")],
         [sg.Text('Messages', font=('Helvetica', 15))],
         [sg.Multiline(key='messages', size=(1000, 25), disabled=True)],
-        [sg.Text('Target'), sg.InputText(key='target')],
+        [sg.Text('Target'), sg.InputText(key='target'), sg.Button('Set')],
         [sg.Text('Message'), sg.InputText(key='message')],
         [sg.Button('Send'), sg.Button('Load')]
     ]
@@ -131,6 +137,7 @@ def chat():
             if target == '' or message == '':
                 sg.popup_error('Target or message is empty')
                 continue
+            target_ = target
             threading.Thread(target=web_sock_send_message, args=(target, message)).start()    
             threading.Thread(target=web_sock_get_messages, args=(target,)).start()  
         if event == 'Load':
@@ -138,7 +145,17 @@ def chat():
             if target == '':
                 sg.popup_error('Target is empty')
                 continue
-            threading.Thread(target=web_sock_get_messages, args=(target,)).start()     
+            target_ = target
+            threading.Thread(target=web_sock_get_messages, args=(target,)).start()    
+        if event == 'Set':
+            target = values['target']
+            if target == '':
+                sg.popup_error('Target is empty')
+                continue
+            target_ = target
+            window["title"].update(f"Chat with {target}")
+            threading.Thread(target=web_sock_get_messages, args=(target,)).start() 
+            threading.Thread(target=web_sock_messages_background, args=(target,)).start()
 
 @sio.on('status')
 def status(data):
@@ -165,6 +182,17 @@ def token(data):
     token_ = data
     zipper.save_token('conf.wscli', token_)
     print(token_)
+@sio.on('messages_background')
+def messages_background(data):
+    new_data = ''
+    for i in data:
+        new_data += f"{i['sender']} at {i['timestamp']}: '{i['message'].decode()}'\n"
+    old_data = window['messages'].get()
+    window['messages'].update(old_data + "\n" + new_data)
+    global target_
+    threading.Thread(target=web_sock_messages_background, args=(target_,)).start()
+
+
 try:
     sio.connect(server_link)
     if os.path.exists('conf.wscli'):

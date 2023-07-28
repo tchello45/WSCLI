@@ -4,8 +4,6 @@ import json
 import zipper
 import socketio
 sio = socketio.Client()
-if not os.path.exists('temp'):
-    os.makedirs('temp')
 window = None
 enc = None
 server_link = None
