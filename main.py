@@ -11,10 +11,32 @@ token_ = None
 target_ = None
 __version__ = "1.0.0 beta"
 __author__ = "Tilman Kurmayer"
-if not os.path.exists('conf.wscli'):
-    sg.popup_error('Please run installation.py first')
+layout = [
+    [sg.Text(f'WSCLI {__version__}', font=('Helvetica', 20))],
+    [sg.InputText(key="path"), sg.FileBrowse('Select config', file_types=(('wscli config', '*.wscli'),))],
+    [sg.Button('Start')]
+]
+window = sg.Window('WSCLI', layout)
+while True:
+    event, values = window.read()
+    if event == sg.WIN_CLOSED:
+        break
+    if event == 'Start':
+        path = values['path']
+        break
+window.close()
+window = None
+if path == '':
+    sg.popup_error('Path is empty')
     exit()
-data = json.loads(zipper.read_config('conf.wscli').decode())
+if not os.path.exists(path):
+    sg.popup_error('Path does not exist')
+    exit()
+try:
+    data = json.loads(zipper.read_config(path).decode())
+except:
+    sg.popup_error('Config is invalid')
+    exit()
 server_link = data["server_link"]
 api_server_name = data["api_server_name"]
 login_password = data["login_password"]
@@ -81,7 +103,8 @@ def login():
             password = values['password']
             threading.Thread(target=web_sock_login, args=(username, password)).start()
             window.close()
-            break
+            chat()
+    
 
 def register():
     if enc:
@@ -113,7 +136,7 @@ def register():
             else:
                 threading.Thread(target=web_sock_register, args=(username, password)).start()
             window.close()
-            break
+            login()
 
 def chat():
     global window
@@ -124,7 +147,7 @@ def chat():
         [sg.Multiline(key='messages', size=(1000, 25), disabled=True)],
         [sg.Text('Target'), sg.InputText(key='target'), sg.Button('Set')],
         [sg.Text('Message'), sg.InputText(key='message')],
-        [sg.Button('Send'), sg.Button('Load')]
+        [sg.Button('Send'), sg.Button('Load'), sg.Button('Logout')]
     ]
     window = sg.Window('Chat', layout, size=(1000, 600), resizable=True)
     while True:
@@ -138,8 +161,6 @@ def chat():
                 sg.popup_error('Target or message is empty')
                 continue
             target_ = target
-            threading.Thread(target=web_sock_send_message, args=(target, message)).start()    
-            threading.Thread(target=web_sock_get_messages, args=(target,)).start()  
         if event == 'Load':
             target = values['target']
             if target == '':
@@ -156,6 +177,13 @@ def chat():
             window["title"].update(f"Chat with {target}")
             threading.Thread(target=web_sock_get_messages, args=(target,)).start() 
             threading.Thread(target=web_sock_messages_background, args=(target,)).start()
+        if event == 'Logout':
+            global token_
+            token_ = None
+            zipper.save_token('conf.wscli', "INVALID_TOKEN")
+            window.close()
+            register_login()
+            break
 
 @sio.on('status')
 def status(data):
@@ -195,14 +223,12 @@ def messages_background(data):
 
 try:
     sio.connect(server_link)
-    if os.path.exists('conf.wscli'):
-        web_sock_error_dict()
 except: 
     sg.popup_error('Server is not available')
     exit()
 
 try:
-    token_ = zipper.read_token('conf.wscli').decode()
+    token_ = zipper.read_token(path).decode()
     web_sock_check_token(token_)
 except Exception as e:
     register_login()

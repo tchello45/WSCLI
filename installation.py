@@ -4,6 +4,7 @@ import json
 import zipper
 import socketio
 sio = socketio.Client()
+path = None
 window = None
 enc = None
 server_link = None
@@ -23,7 +24,7 @@ def status(data):
                 "enc": enc
             }
             json_ = json.dumps(dict_)
-            zipper.save_config('conf.wscli', json_)
+            zipper.save_config(path, json_)
             print("installation complete")
             exit()
     else:
@@ -40,6 +41,7 @@ def enc(data):
 def start():
     layout = [
         [sg.Text('Installation', font=('Helvetica', 20))],
+        [sg.InputText(key='path'), sg.FileSaveAs('Select path', file_types=(('wscli config', '*.wscli'),))],
         [sg.Text('Server Link'), sg.InputText(key='server_link')],
         [sg.Text('API Server Name'), sg.InputText(key='api_server_name')],
         [sg.Text('Login password'), sg.InputText(key='login_password')],
@@ -57,11 +59,13 @@ def start():
             global api_server_name
             global login_password
             global register_password
+            global path
             server_link = values['server_link']
             api_server_name = values['api_server_name']
             login_password = values['login_password']
             register_password = values['register_password']
-            if server_link == '' or api_server_name == '' or login_password == '' or register_password == '':
+            path = values['path']
+            if server_link == '' or api_server_name == '' or login_password == '' or register_password == '' or path == '':
                 sg.popup_error('Please fill in all fields')
 
             else:
