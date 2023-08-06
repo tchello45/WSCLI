@@ -24,7 +24,9 @@ def status(data):
                 "enc": enc
             }
             json_ = json.dumps(dict_)
-            zipper.save_config(path, json_)
+            da = open(path, "w")
+            da.write(json_)
+            da.close()
             print("installation complete")
             exit()
     else:
@@ -41,7 +43,7 @@ def enc(data):
 def start():
     layout = [
         [sg.Text('Installation', font=('Helvetica', 20))],
-        [sg.InputText(key='path'), sg.FileSaveAs('Select path', file_types=(('wscli config', '*.wscli'),))],
+        [sg.InputText(key='path'), sg.FileSaveAs('Select path', file_types=(('wscli config', '*.json'),))],
         [sg.Text('Server Link'), sg.InputText(key='server_link')],
         [sg.Text('API Server Name'), sg.InputText(key='api_server_name')],
         [sg.Text('Login password'), sg.InputText(key='login_password')],
